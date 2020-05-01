@@ -1,46 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>https://juliofg1.github.io</loc>
+        <loc>https://lasplumas.github.io</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/</loc>
+        <loc>https://lasplumas.github.io/</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/img/favicon.png</loc>
+        <loc>https://lasplumas.github.io/index.html</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/css/estilo.css</loc>
+        <loc>https://lasplumas.github.io/inicio.html</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/img/icono-menu.png</loc>
+        <loc>https://lasplumas.github.io/aplicaciones.html</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/img/desarrollo.png</loc>
+        <loc>https://lasplumas.github.io/blog.html</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/img/tinta1.png</loc>
+        <loc>https://lasplumas.github.io/contacto.html</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/img/mont10.png</loc>
+        <loc>https://lasplumas.github.io/#inicio</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/img/mont113294.png</loc>
+        <loc>https://lasplumas.github.io/#inicio2</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/img/mont106514.png</loc>
+        <loc>https://lasplumas.github.io/#inicio3</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/fonts/facebook.png</loc>
+        <loc>https://lasplumas.github.io/#inicio4</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/fonts/twitter.png</loc>
+        <loc>https://lasplumas.github.io/img/favicon.png</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/fonts/camera.png</loc>
+        <loc>https://lasplumas.github.io/css/estilo.css</loc>
     </url>
     <url>
-        <loc>https://juliofg1.github.io/fonts/pinteres.png</loc>
+        <loc>https://lasplumas.github.io/img/icono-menu.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/img/desarrollo.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/img/tinta1.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/img/buy.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/img/mont10.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/img/mont113294.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/img/mont106514.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/fonts/facebook.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/fonts/twitter.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/fonts/camera.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/fonts/pinteres.png</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/index.html#inicio</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/index.html#inicio2</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/index.html#inicio3</loc>
+    </url>
+    <url>
+        <loc>https://lasplumas.github.io/index.html#inicio4</loc>
     </url>
 </urlset>
 
