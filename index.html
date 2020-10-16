@@ -28,45 +28,11 @@
 <meta name="twitter:url" content="" />
 <title> El mundo de las estilograficas【⌛✆⛳】👌🙌 </title>
 
-<!--//BLOQUE COOKIES-->   
-<script>
-function getCookie(c_name){
-    var c_value = document.cookie;
-    var c_start = c_value.indexOf(" " + c_name + "=");
-    if (c_start == -1){
-        c_start = c_value.indexOf(c_name + "=");
-    }
-    if (c_start == -1){
-        c_value = null;
-    }else{
-        c_start = c_value.indexOf("=", c_start) + 1;
-        var c_end = c_value.indexOf(";", c_start);
-        if (c_end == -1){
-            c_end = c_value.length;
-        }
-        c_value = unescape(c_value.substring(c_start,c_end));
-    }
-    return c_value;
-}
- 
-function setCookie(c_name,value,exdays){
-    var exdate=new Date();
-    exdate.setDate(exdate.getDate() + exdays);
-    var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-    document.cookie=c_name + "=" + c_value;
-}
- 
-if(getCookie('lasplumas-aviso')!="1"){
-    document.getElementById("barraaceptacion").style.display="block";
-}
-function PonerCookie(){
-    setCookie('lasplumas-aviso','1',365);
-    document.getElementById("barraaceptacion").style.display="none";
-}
-</script>
-<!--//FIN BLOQUE COOKIES-->
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
+  <link rel="stylesheet" href="css/estilo.css">
+  <script type="text/javascript" src="js/js.js" async="async"></script>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-161852601-4"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -74,13 +40,11 @@ function PonerCookie(){
   gtag('js', new Date());
 
   gtag('config', 'UA-161852601-4');
-</script>
-  <link rel="stylesheet" href="css/estilo.css">
-    
+  </script>
 </head>
 
 <header>
- <center><h1><i>⊛⊛✅Un viaje a lo clasico.⊛⊛✅ </i></h1></center>
+ <center><h1><i>⊛⊛✅Un viaje a lo clasico.⊛⊛✅</i></h1></center>
   <!--//  <div class="contenedor">
     <h1>▷ ▷•• <i>Estilograficas y...</i></h1>
     <input type="checkbox" id="menu-bar">
