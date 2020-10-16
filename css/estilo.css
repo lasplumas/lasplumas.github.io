@@ -38,8 +38,8 @@ header {
 
 
 h1 {
-
-        float: left;
+        //float: center;
+        //float: left;
 }
 h5 {
        width: 60%;     
