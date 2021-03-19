@@ -1,0 +1,200 @@
+
+Linuxito	
+Security is a process, not a product. – OWASP Testing Guide
+Cómo montar un servidor git
+
+    17 Septiembre 2016 
+
+    Debian servidor git 
+
+En este artículo voy a explicar los pasos necesarios para montar un servidor git donde alojar un repositorio remoto con acceso SSH, en Debian.
+
+
+
+Para comenzar, instalar git:
+
+# apt-get install git
+
+En Debian 7, la versión disponible desde paquete pertenece a la rama 1.7:
+
+root@debian7# git --version
+git version 1.7.10.4
+
+Si se desea una versión más actualizada será necesario compilarla desde los fuentes, o instalarla desde los backports.
+
+Luego crear un directorio donde alojar los repositorios git:
+
+# mkdir /var/repo
+
+La idea es implementar un servidor para hospedar múltiples repositorios, cada uno propiedad de un usuario (a nivel sistema operativo) diferente, para mantenerlos aislados entre sí. Entonces, a continuación, crear un subdirectorio donde alojar el primer repositorio, por ejemplo para mantener el control de versiones del desarrollo de un sitio Web:
+
+# cd /var/repo/
+# mkdir linuxito.com
+
+Inicializar el nuevo repositorio git bare:
+
+# cd linuxito.com/ && git init --bare
+
+Ejemplo:
+
+root@debian7# git init --bare
+Initialized empty Git repository in /var/repo/linuxito.com/
+
+El siguiente paso consiste en crear un usuario para acceder al repositorio git de forma remota a través de SSH:
+
+root@debian7# useradd -c "Usuario git linuxito.com" -M -d /var/repo/linuxito.com -s /usr/bin/git-shell git_linuxito
+
+Notar que la shell para éste usuario es git-shell. Queremos que los desarrolladores sean capaces de conectarse a través de SSH al servidor, para mantener el repositorio git, pero no deseamos que tengan acceso a una shell (que no puedan ejecutar comandos en el servidor).
+
+Configurar el acceso SSH para el usuario "git_linuxito":
+
+# nano /etc/ssh/sshd_config
+
+Agregar las siguientes líneas en el archivo de configuración del servidor SSH:
+
+Match User git_linuxito
+        PasswordAuthentication no
+        PubkeyAuthentication yes
+        AuthorizedKeysFile /var/repo/.ssh/authorized_keys-git_linuxito
+        AllowTcpForwarding no
+        MaxSessions 10
+
+El mecanismo de autenticación para este usuario será sólo a través de clave pública y el archivo authorized_keys-git_linuxito se crea más adelante.
+
+Recargar el servicio SSH para que tome los cambios en la configuración:
+
+# service ssh reload
+
+Ahora sí, crear el archivo authorized_keys-git_linuxito para implementar el acceso SSH con clave pública:
+
+# mkdir /var/repo/.ssh
+# cd /var/repo/.ssh/
+# nano authorized_keys
+
+(Pegar las claves públicas DSA o RSA de los desarrolladores que tendrán acceso a este repositorio).
+
+Cambiar los permisos sobre el archivo para que ningún desarrollador pueda modificarlo (evitar que pueda agregar nuevas claves públicas para que otros desarrolladores se autentiquen como git_linuxito a través de SSH):
+
+# chown root:git_linuxito authorized_keys
+# chmod 440 authorized_keys
+
+La idea de esta configuración consiste en utilizar un archivo authorized_keys para cada usuario (como es costumbre), pero que todos estén alojados en el mismo directorio /var/repo/.ssh/, con acceso de escritura para nadie. De esta forma, sólo root puede otorgarse permisos de escritura (740) para agregar una nueva clave, y luego volver a 440.
+
+root@debian7# cd ..
+root@debian7# ll -d .ssh
+drwxr-xr-x 2 root root 4.0K Sep 16 12:51 .ssh
+root@debian7# ll .ssh
+total 4.0K
+-r--r----- 1 root git_linuxito 602 Sep 16 12:51 authorized_keys
+
+En este momento es posible verificar que la autenticación SSH con clave pública funcione:
+
+emi@hal9000:~ % ssh -p 2222 git_linuxito@linuxito.com
+Linux debian7 3.2.0-4-amd64 #1 SMP Debian 3.2.57-3+deb7u2 x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Fri Sep 16 13:12:07 2016 from 6.6.6.6
+fatal: Interactive git shell is not enabled.
+hint: ~/git-shell-commands should exist and have read and execute access.
+Connection to linuxito.com closed.
+
+Lógicamente no es posible abrir una shell remota porque se está utilizando git-shell. Sin embargo la autenticación con clave pública funciona correctamente.
+
+Resta configurar los permisos adecuados para el repositorio:
+
+# cd linuxito.com/
+# chown -R git_linuxito:git_linuxito linuxito.com
+
+Y finalmente verificar el acceso con el comando git:
+
+root@linuxito:~# git clone ssh://git_linuxito@linuxito.com:2222/var/repo/linuxito.com
+Cloning into 'linuxito.com'...
+warning: You appear to have cloned an empty repository.
+
+Referencias
+
+Git on the Server - Setting Up the Server
+
+Git -git-shell Documentation
+
+
+Tal vez pueda interesarte
+
+Compartí este artículo
+Compartir
+Twittear
+Compartir
+diaspora*
+reddit
+
+Menú
+
+    Inicio
+    GNU/Linux
+    Programación
+    Seguridad
+    Fotografía
+    Juegos
+    NIX
+    Windows
+    Cloud & Virtualización
+    Misc
+    Manuales y descargas
+    Links
+    Herramientas
+    Blogroll
+    Blog
+    Mapa del sitio
+    Contacto
+
+Social
+
+    Feeds RSS
+    Emiliano (@otixunil) | Twitter
+    linuxitux - GitHub
+
+Entradas
+
+(88)
+
+(6)
+
+    Cómo hacer el efecto zoom en Gimp
+    100% de uso en /tmp pero no hay archivos
+    Incluir schemas de OpenLDAP con OLC
+    Cambiar el nivel de log de slapd con OLC
+    Accediendo al menú fastboot en Android
+    Obtener la cantidad de disparos en cámaras Canon EOS REBEL 600D/T3i y muchas más
+
+(10)
+(10)
+(18)
+(16)
+(11)
+
+    (17)
+
+(142)
+(155)
+(186)
+(191)
+(135)
+(187)
+(155)
+
+    (130)
+
+Invitame un café
+
+No me hice bloguero para ganar dinero, pero cualquier dinerillo que tengas está bien
+high performance ssd vps
+
+El contenido de este sitio es publicado bajo la licencia Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+
+Usamos cookies en nuestro sitio web. Algunas de ellas son esenciales para el funcionamiento del sitio, mientras que otras nos ayudan a mejorar el sitio web y también la experiencia del usuario (cookies de rastreo). Puedes decidir por ti mismo si quieres permitir el uso de las cookies. Ten en cuenta que si las rechazas, puede que no puedas usar todas las funcionalidades del sitio web.
+De acuerdo

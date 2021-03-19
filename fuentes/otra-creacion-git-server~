@@ -1,0 +1,133 @@
+
+Git --local-branching-on-the-cheap
+
+    About
+    Documentation
+        Reference
+        Book
+        Videos
+        External Links
+    Downloads
+    Community
+
+This book is available in English.
+
+Full translation available in
+български език,
+Deutsch,
+Español,
+Français,
+Ελληνικά,
+日本語,
+한국어,
+Nederlands,
+Русский,
+Slovenščina,
+Tagalog,
+Українська
+简体中文,
+
+Partial translations available in
+Čeština,
+Македонски,
+Polski,
+Српски,
+Ўзбекча,
+繁體中文,
+
+Translations started for
+azərbaycan dili,
+Беларуская,
+فارسی,
+Indonesian,
+Italiano,
+Bahasa Melayu,
+Português (Brasil),
+Português (Portugal),
+Svenska,
+Türkçe.
+
+The source of this book is hosted on GitHub.
+Patches, suggestions and comments are welcome.
+Chapters ▾ 2nd Edition
+4.4 Git en el Servidor - Configurando el servidor
+Configurando el servidor
+
+Vamos a avanzar en los ajustes de los accesos SSH en el lado del servidor. En este ejemplo, usarás el método de las authorized_keys (claves autorizadas) para autentificara tus usuarios. Se asume que tienes un servidor en marcha, con una distribución estándar de Linux, tal como Ubuntu. Comienzas creando un usuario git y una carpeta .ssh para él.
+
+$ sudo adduser git
+$ su git
+$ cd
+$ mkdir .ssh && chmod 700 .ssh
+$ touch .ssh/authorized_keys && chmod 600 .ssh/authorized_keys
+
+Y a continuación añades las claves públicas de los desarrolladores al archivo authorized_keys del usuario git que has creado. Suponiendo que hayas recibido las claves por correo electrónico y que las has guardado en archivos temporales. Y recordando que las claves públicas son algo así como:
+
+$ cat /tmp/id_rsa.john.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCB007n/ww+ouN4gSLKssMxXnBOvf9LGt4L
+ojG6rs6hPB09j9R/T17/x4lhJA0F3FR1rP6kYBRsWj2aThGw6HXLm9/5zytK6Ztg3RPKK+4k
+Yjh6541NYsnEAZuXz0jTTyAUfrtU3Z5E003C4oxOj6H0rfIF1kKI9MAQLMdpGW1GYEIgS9Ez
+Sdfd8AcCIicTDWbqLAcU4UpkaX8KyGlLwsNuuGztobF8m72ALC/nLF6JLtPofwFBlgc+myiv
+O7TCUSBdLQlgMVOFq1I2uPWQOkOWQAHukEOmfjy2jctxSDBQ220ymjaNsHT4kgtZg2AYYgPq
+dAv8JggJICUvax2T9va5 gsg-keypair
+
+No tienes más que añadirlas al archivo authorized_keys dentro del directorio .ssh:
+
+$ cat /tmp/id_rsa.john.pub >> ~/.ssh/authorized_keys
+$ cat /tmp/id_rsa.josie.pub >> ~/.ssh/authorized_keys
+$ cat /tmp/id_rsa.jessica.pub >> ~/.ssh/authorized_keys
+
+Tras esto, puedes preparar un repositorio básico vacío para ellos, usando el comando git init con la opción --bare para inicializar el repositorio sin carpeta de trabajo:
+
+$ cd /opt/git
+$ mkdir project.git
+$ cd project.git
+$ git init --bare
+Initialized empty Git repository in /opt/git/project.git/
+
+Y John, Josie o Jessica podrán enviar (push) la primera versión de su proyecto a dicho repositorio, añadiéndolo como remoto y enviando (push) una rama (branch). Cabe indicar que alguien tendrá que iniciar sesión en la máquina y crear un repositorio básico, cada vez que se desee añadir un nuevo proyecto. Suponiendo, por ejemplo, que se llame gitserver el servidor donde has puesto el usuario git y los repositorios; que dicho servidor es interno a vuestra red y que está asignado el nombre gitserver en vuestro DNS. Podrás utilizar comandos tales como (suponiendo que myproject es un proyecto ya creado con algunos archivos):
+
+# on Johns computer
+$ cd myproject
+$ git init
+$ git add .
+$ git commit -m 'initial commit'
+$ git remote add origin git@gitserver:/opt/git/project.git
+$ git push origin master
+
+Tras lo cual, otros podrán clonarlo y enviar cambios de vuelta:
+
+$ git clone git@gitserver:/opt/git/project.git
+$ cd project
+$ vim README
+$ git commit -am 'fix for the README file'
+$ git push origin master
+
+Con este método, puedes preparar rápidamente un servidor Git con acceso de lectura/escritura para un grupo de desarrolladores.
+
+Observa que todos esos usuarios pueden también entrar en el servidor obteniendo un intérprete de comandos con el usuario git. Si quieres restringirlo, tendrás que cambiar el intérprete (shell) en el archivo passwd.
+
+Para una mayor protección, puedes restringir fácilmente el usuario git a realizar solamente actividades relacionadas con Git, utilizando un shell limitado llamado git-shell que viene incluido en Git. Si lo configuras como el shell de inicio de sesión de tu usuario git, dicho usuario no tendrá acceso al shell normal del servidor. Para especificar el git-shell en lugar de bash o de csh como el shell de inicio de sesión de un usuario, has de editar el archivo /etc/passwd:
+
+$ cat /etc/shells   # mirar si `git-shell` ya está aquí.  Si no...
+$ which git-shell   # buscar `git-shell` en nuestro sistema
+$ sudo vim /etc/shells  # y añadirlo al final de este archivo con el camino (path) completo
+
+Ahora ya puedes cambiar la shell del usuario utilizando chsh <username>:
+
+$ sudo chsh git  # poner aquí la nueva shell, normalmente será: /usr/bin/git-shell
+
+De esta forma dejamos al usuario git limitado a utilizar la conexión SSH solamente para enviar (push) y recibir (pull) repositorios, sin posibilidad de iniciar una sesión normal en el servidor. Si pruebas a hacerlo, recibirás un rechazo de inicio de sesión:
+
+$ ssh git@gitserver
+fatal: Interactive git shell is not enabled.
+hint: ~/git-shell-commands should exist and have read and execute access.
+Connection to gitserver closed.
+
+Los comandos remotos de Git funcionarán con normalidad, pero los usuarios no podrán obtener un intérprete de comandos del sistema. Tal como nos avisa, también se puede establecer un directorio llamado git-shell-commands en la cuenta del usuario git para personalizar un poco el git-shell. Por ejemplo, se puede restringir qué comandos de Git se aceptarán o se puede personalizar el mensaje que los usuarios verán si intentan abrir un intérprete de comandos con SSH.
+
+Ejecutando git help shell veremos más información sobre cómo personalizar el shell.
+prev | next
+About this site
+Patches, suggestions, and comments are welcome.
+Git is a member of Software Freedom Conservancy

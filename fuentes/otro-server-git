@@ -1,0 +1,140 @@
+
+
+
+Repositorio central git en el servidor
+
+Hace algún tiempo me pareció curioso ver como mis compañeros de desarrollo web realizaban sus cambios en su máquina (local), los subían a un repositorio remoto (remote), accedían al servidor donde estaba en ambiente producción, actualizaban y veían sus cambios sin hacer mucho esfuerzo. Años después pude “descifrarlo” y quiero compartirlo por dos razones: 1) sé que se me va a olvidar y quiero tenerlo registrado en alguna parte y 2) compartilor por si alguien quiere aprenderlo. Agradezco a Rodolfo Terrones quien me compartió conocimiento para poder realizar este post. Es desarrollador Web y iOS por si están interesados.
+
+En este post quiero hablar de como montar un repositorio central git en el servidor (así pude encontrarlo en Internet, si alguien tiene el concepto correcto por favor compártanlo). La idea que mostraré es la siguiente:
+
+    (Principalmente en web): un programador web termina de desarrollar los cambios correspondientes en su máquina (en local) y ya está listo para mandarlos al ambiente de producción. Para eso deben subir sus cambios al repositorio donde está el ambiente productivo que es en el servidor, posteriormente ingresa un adminsitrador al servidor vía SSH y baja las actualizaciones hechas por los desarrolladores para que se vean reflejadas en el ambiente de producción.
+
+Bueno, pues para poder replicar el proceso anterior realizaremos los siguientes pasos:
+Crear un repositorio vacío en el servidor
+
+Este repositorio va a fungir como el repositorio central que recibirá las actualizaciones de los desarrolladores y que las liberará a producción, se podría decir que es la “aduana” que se encargará de administrar y controlar los cambios. Para realizar esto, primero debemos acceder a nuestro servidor por SSH cuyo comando es:
+
+    ssh -p puerto usuario@dirección-ip
+
+donde:
+
+[puerto]: puerto en donde se puede tener acceso a SSH. Algo muy importante para tomar en cuenta, es que el puerto por default de este protocolo es el 22, sin embargo algunos servidores ofrecen un puerto diferente por cuestiones de seguridad y es necesario especificarlo, de lo contrario no podrán acceder. Si el puerto de SSH SI es el predeterminado, solo basta con omitir “-p  [puerto]” y podrán ingresar.
+
+usuario: es el identificador del usuario que tiene acceso por SSH. Estos usuarios deberán ser administrador desde el servidor
+
+dirección-ip: es la URL donde se podrá acceder
+
+Al presionar enter, consola solicitará una contraseña para poder acceder. Ya una vez dentro, deberán posicionarse (desde la Terminal) en la carpeta donde quieren se almacene su proyecto. Comúnmente todos los sitios web están alojados en una carpeta pública o en la carpeta de subdirectorio. Estando posicionados ahí crearán una carpeta tal y como se muestra:
+
+    mkdir mirepositorio.git
+
+donde:
+
+mirepositorio: nombre real del repositorio. Por ejemplo: fcojlanda.git
+
+Ya creado la carpeta, accedemos a ella con:
+
+    cd mirepositorio.git
+
+y acto seguido ingresaremos el comando git
+
+    git –bare init
+
+Pero, ¿qué es –bare?. De acuerdo con la documentación de git, hay dos formas de inicializar un repositorio: git init y git –bare init. El primero es un espacio de trabajo, es decir, donde se realizan los cambios, solamente para trabajar; en cambio el segundo almacena el historial de cambios y las copias de trabajo de los archivos del proyecto y sirve para compartir, consumir y enviar los cambios generados.
+
+Con esto, terminamos la primera parte.
+Crear el repositorio de trabajo en local
+
+Ahora vamos a crear el repositorio de trabajo donde haremos todas nuestras modificaciones. Para eso, accedemos por terminal a la carpeta raíz donde está nuestro proyecto con el siguiente comando
+
+    cd dirección/de/mi/repositorio
+
+y posteriormente inicializamos el repositorio git
+
+    git init
+
+Con esto ya preparamos nuestro espacio de trabajo. Ahora debemos agregar el repositorio remoto a donde enviaremos nuestros cambios hechos en el repositorio local. Debemos recordar que es un repositorio donde nos vamos a comunicar con el protocolo SSH, por lo que agregamos nuestro repo remoto de la siguiente forma:
+
+    git remote add origin ssh://usuario@url_ip:puerto/dirección/del/repositorio/central/mirepositorio.git/
+
+Donde:
+
+git remote add origin: comando para agregar el repositorio remoto con nombre “origin”
+
+ssh: protocolo que se usará para conectarse
+
+usuario: el usuario con el que se pretende acceder con permisos correspondientes
+
+url_ip: dirección del servidor
+
+puerto: puerto para aceder a SSH. NOTA: si se tiene acceso desde el puerto 22 que es el predeterminado, entonces se omite este parámetro
+
+puerto/dirección/del/repositorio/central/mirepositorio.git/: path de la carpeta donde está ubicado el repositorio central.
+
+Una vez agregado, procedemos a agregar el commit inicial, primero agregando todos los archivos de forma recursiva:
+
+    git add -A
+
+después encapsularlos en el commit:
+
+    git commit -m “Este es el commit inicial”
+
+y finalmente inauguramos el repositorio central enviando los cambios:
+
+    git push origin master
+
+ 
+Actualizar cambios del repositorio central desde el server
+
+Y ahora, llegamos al último paso que es actualizar los cambios en el servidor y por fin se vean reflejados en producción. Para esto, nos vamos a posicionar en donde queremos descargar dichas actualizaciones (para web, comúnmente pueden almacenarse en la carpeta “public_html”), y una vez ahí vamos a clonar el proyecto bare que creamos anteriormente. Para esto, aplicamos el siguiente comando en Terminal:
+
+    git clone ssh://usuario@url_ip:puerto/directorio/del/repositorio/bare/mirepositorio.git/
+
+donde:
+
+git clone: comando git para clonar el proyecto
+
+ssh: protocolo de comunicación
+
+usuario: usuario con el que se accederá
+
+url_ip: dirección IP del servidor
+
+puerto: puerto para la comunicación SSH. NOTA: si el puerto de acceso es el pretedeterminado 22, este valor puede ser omitido.
+
+/directorio/del/repositorio/bare/mirepositorio.git/: ubicación a nivel disco duro donde se encuentra almacenado el repositorio.
+
+Una vez ingresado, nos pedirán nos autentiquemos y finalmente, habremos clonado el proyecto. Para asegurarnos que así sea, escribiremos en la carpeta de recepción del repositorio el comando:
+
+    git pull origin master
+
+y con esto, tendremos nuestros cambios en producción.
+
+ 
+Actualización de código
+
+¿Por qué hacer esto? El proceso de subir un proyecto actualizado sin este método podría significar horas de actualización por que se está copiando TODO el proyecto, en cambio con un repositorio el esfuerzo es menos ya que solo agrega el código que se cambió únicamente, y no todo. Para llevar a cambo este proceso de actualización primero comenzamos desde el repositorio del área de trabajo con los siguientes comandos:
+
+    git add -A
+
+ 
+
+    git commit -m “Mensaje del commit”
+
+ 
+
+    git push origin master
+
+ 
+
+Y una vez subidos los cambios, procedemos a bajarlos accediendo al servidor nuevamente
+
+    ssh -p puerto usuario@dirección-ip
+
+y escribir el comando para “jalar” los cambios en git
+
+    git pull origin master
+
+En realidad, este procedimiento es muy ágil y práctico que nos liberará de muchos problemas de control en el versionado, tiempo de actualización y posibles confusiones en el proceso de liberación.
+
+  

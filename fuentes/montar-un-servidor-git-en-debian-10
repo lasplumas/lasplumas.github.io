@@ -1,0 +1,470 @@
+
+Linuxito	
+Security is a process, not a product. – OWASP Testing Guide
+Cómo montar un servidor git
+
+    17 Septiembre 2016 
+
+    Debian servidor git 
+
+En este artículo voy a explicar los pasos necesarios para montar un servidor git donde alojar un repositorio remoto con acceso SSH, en Debian.
+
+
+
+Para comenzar, instalar git:
+
+# apt-get install git
+
+En Debian 7, la versión disponible desde paquete pertenece a la rama 1.7:
+
+root@debian7# git --version
+git version 1.7.10.4
+
+Si se desea una versión más actualizada será necesario compilarla desde los fuentes, o instalarla desde los backports.
+
+Luego crear un directorio donde alojar los repositorios git:
+
+# mkdir /var/repo
+
+La idea es implementar un servidor para hospedar múltiples repositorios, cada uno propiedad de un usuario (a nivel sistema operativo) diferente, para mantenerlos aislados entre sí. Entonces, a continuación, crear un subdirectorio donde alojar el primer repositorio, por ejemplo para mantener el control de versiones del desarrollo de un sitio Web:
+
+# cd /var/repo/
+# mkdir linuxito.com
+
+Inicializar el nuevo repositorio git bare:
+
+# cd linuxito.com/ && git init --bare
+
+Ejemplo:
+
+root@debian7# git init --bare
+Initialized empty Git repository in /var/repo/linuxito.com/
+
+El siguiente paso consiste en crear un usuario para acceder al repositorio git de forma remota a través de SSH:
+
+root@debian7# useradd -c "Usuario git linuxito.com" -M -d /var/repo/linuxito.com -s /usr/bin/git-shell git_linuxito
+
+Notar que la shell para éste usuario es git-shell. Queremos que los desarrolladores sean capaces de conectarse a través de SSH al servidor, para mantener el repositorio git, pero no deseamos que tengan acceso a una shell (que no puedan ejecutar comandos en el servidor).
+
+Configurar el acceso SSH para el usuario "git_linuxito":
+
+# nano /etc/ssh/sshd_config
+
+Agregar las siguientes líneas en el archivo de configuración del servidor SSH:
+
+Match User git_linuxito
+        PasswordAuthentication no
+        PubkeyAuthentication yes
+        AuthorizedKeysFile /var/repo/.ssh/authorized_keys-git_linuxito
+        AllowTcpForwarding no
+        MaxSessions 10
+
+El mecanismo de autenticación para este usuario será sólo a través de clave pública y el archivo authorized_keys-git_linuxito se crea más adelante.
+
+Recargar el servicio SSH para que tome los cambios en la configuración:
+
+# service ssh reload
+
+Ahora sí, crear el archivo authorized_keys-git_linuxito para implementar el acceso SSH con clave pública:
+
+# mkdir /var/repo/.ssh
+# cd /var/repo/.ssh/
+# nano authorized_keys
+
+(Pegar las claves públicas DSA o RSA de los desarrolladores que tendrán acceso a este repositorio).
+
+Cambiar los permisos sobre el archivo para que ningún desarrollador pueda modificarlo (evitar que pueda agregar nuevas claves públicas para que otros desarrolladores se autentiquen como git_linuxito a través de SSH):
+
+# chown root:git_linuxito authorized_keys
+# chmod 440 authorized_keys
+
+La idea de esta configuración consiste en utilizar un archivo authorized_keys para cada usuario (como es costumbre), pero que todos estén alojados en el mismo directorio /var/repo/.ssh/, con acceso de escritura para nadie. De esta forma, sólo root puede otorgarse permisos de escritura (740) para agregar una nueva clave, y luego volver a 440.
+
+root@debian7# cd ..
+root@debian7# ll -d .ssh
+drwxr-xr-x 2 root root 4.0K Sep 16 12:51 .ssh
+root@debian7# ll .ssh
+total 4.0K
+-r--r----- 1 root git_linuxito 602 Sep 16 12:51 authorized_keys
+
+En este momento es posible verificar que la autenticación SSH con clave pública funcione:
+
+emi@hal9000:~ % ssh -p 2222 git_linuxito@linuxito.com
+Linux debian7 3.2.0-4-amd64 #1 SMP Debian 3.2.57-3+deb7u2 x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Fri Sep 16 13:12:07 2016 from 6.6.6.6
+fatal: Interactive git shell is not enabled.
+hint: ~/git-shell-commands should exist and have read and execute access.
+Connection to linuxito.com closed.
+
+Lógicamente no es posible abrir una shell remota porque se está utilizando git-shell. Sin embargo la autenticación con clave pública funciona correctamente.
+
+Resta configurar los permisos adecuados para el repositorio:
+
+# cd linuxito.com/
+# chown -R git_linuxito:git_linuxito linuxito.com
+
+Y finalmente verificar el acceso con el comando git:
+
+root@linuxito:~# git clone ssh://git_linuxito@linuxito.com:2222/var/repo/linuxito.com
+Cloning into 'linuxito.com'...
+warning: You appear to have cloned an empty repository.
+
+Referencias
+
+Git on the Server - Setting Up the Server
+
+Git -git-shell Documentation
+
+
+Tal vez pueda interesarte
+
+Compartí este artículo
+Compartir
+Twittear
+Compartir
+diaspora*
+reddit
+
+Menú
+
+    Inicio
+    GNU/Linux
+    Programación
+    Seguridad
+    Fotografía
+    Juegos
+    NIX
+    Windows
+    Cloud & Virtualización
+    Misc
+    Manuales y descargas
+    Links
+    Herramientas
+    Blogroll
+    Blog
+    Mapa del sitio
+    Contacto
+
+Social
+
+    Feeds RSS
+    Emiliano (@otixunil) | Twitter
+    linuxitux - GitHub
+
+Entradas
+
+(88)
+
+(6)
+
+    Cómo hacer el efecto zoom en Gimp
+    100% de uso en /tmp pero no hay archivos
+    Incluir schemas de OpenLDAP con OLC
+    Cambiar el nivel de log de slapd con OLC
+    Accediendo al menú fastboot en Android
+    Obtener la cantidad de disparos en cámaras Canon EOS REBEL 600D/T3i y muchas más
+
+(10)
+(10)
+(18)
+(16)
+(11)
+
+    (17)
+
+(142)
+(155)
+(186)
+(191)
+(135)
+(187)
+(155)
+
+    (130)
+
+Invitame un café
+
+No me hice bloguero para ganar dinero, pero cualquier dinerillo que tengas está bien
+high performance ssd vps
+
+El contenido de este sitio es publicado bajo la licencia Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+
+Usamos cookies en nuestro sitio web. Algunas de ellas son esenciales para el funcionamiento del sitio, mientras que otras nos ayudan a mejorar el sitio web y también la experiencia del usuario (cookies de rastreo). Puedes decidir por ti mismo si quieres permitir el uso de las cookies. Ten en cuenta que si las rechazas, puede que no puedas usar todas las funcionalidades del sitio web.
+De acuerdo
+
+
+/////////////////////////////
+
+
+
+4.3 Git en el Servidor - Generando tu clave pública SSH
+Generando tu clave pública SSH
+
+Tal y como se ha comentado, muchos servidores Git utilizan la autentificación a través de claves públicas SSH. Y, para ello, cada usuario del sistema ha de generarse una, si es que ya no la tiene. El proceso para hacerlo es similar en casi cualquier sistema operativo. Ante todo, asegúrate que no tengas ya una clave. Por defecto, las claves de cualquier usuario SSH se guardan en la carpeta ~/.ssh de dicho usuario. Puedes verificar si ya tienes unas claves, simplemente situándote sobre dicha carpeta y viendo su contenido:
+
+$ cd ~/.ssh
+$ ls
+authorized_keys2  id_dsa       known_hosts
+config            id_dsa.pub
+
+Has de buscar un par de archivos con nombres tales como algo y algo.pub; siendo ese "algo" normalmente id_dsa o id_rsa. El archivo terminado en .pub es tu clave pública, y el otro archivo es tu clave privada. Si no tienes esos archivos (o no tienes ni siquiera la carpeta .ssh), has de crearlos; utilizando un programa llamado ssh-keygen, que viene incluido en el paquete SSH de los sistemas Linux/Mac o en el paquete MSysGit en los sistemas Windows:
+
+$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/schacon/.ssh/id_rsa):
+Created directory '/home/schacon/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/schacon/.ssh/id_rsa.
+Your public key has been saved in /home/schacon/.ssh/id_rsa.pub.
+The key fingerprint is:
+d0:82:24:8e:d7:f1:bb:9b:33:53:96:93:49:da:9b:e3 schacon@mylaptop.local
+
+Como se ve, este comando primero solicita confirmación de dónde van a a guardarse las claves (.ssh/id_rsa), y luego solicita, dos veces, una contraseña (passphrase), contraseña que puedes dejar en blanco si no deseas tener que teclearla cada vez que uses la clave.
+
+Tras generarla, cada usuario ha de encargarse de enviar su clave pública a quienquiera que administre el servidor Git (en el caso de que éste esté configurado con SSH y así lo requiera). Esto se puede realizar simplemente copiando los contenidos del archivo terminado en .pub y enviándoselos por correo electrónico. La clave pública será una serie de números, letras y signos, algo así como esto:
+
+$ cat ~/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAklOUpkDHrfHY17SbrmTIpNLTGK9Tjom/BWDSU
+GPl+nafzlHDTYW7hdI4yZ5ew18JH4JW9jbhUFrviQzM7xlELEVf4h9lFX5QVkbPppSwg0cda3
+Pbv7kOdJ/MTyBlWXFCR+HAo3FXRitBqxiX1nKhXpHAZsMciLq8V6RjsNAQwdsdMFvSlVK/7XA
+t3FaoJoAsncM1Q9x5+3V0Ww68/eIFmb1zuUFljQJKprrX88XypNDvjYNby6vw/Pb0rwert/En
+mZ+AW4OZPnTPI89ZPmVMLuayrD2cE86Z/il8b+gw3r3+1nKatmIkjn2so1d01QraTlMqVSsbx
+NrRFi9wrf+M7Q== schacon@mylaptop.local
+
+Para más detalles sobre cómo crear unas claves SSH en variados sistemas operativos, consultar la correspondiente guía en GitHub: https://help.github.com/articles/generating-ssh-keys.
+prev | next
+
+
+
+
+
+////////////////////////////////////////////
+
+
+Pasar al contenido principal
+Main navigation
+
+    Inicio
+    Canal en YouTube
+    Chat de Hacking
+    Página Facebook
+    Grupo de Facebook
+    Twitter
+    Foro
+    RSS
+
+User account menu
+
+    Iniciar sesión
+
+Cómo montar su propio servidor Git
+Enviado por fredyavila2 el Mar, 05/06/2018 - 11:48
+GitLab
+
+Aprenda cómo configurar su propio servidor Git con este tutorial; tambien recuerde registrase en nuestro foro, en donde podrá resolver  dudas e inquietudes con el apoyo de toda nuestra comunidad.
+
+Para empezar, vale la pena recordar que Git es un sistema de control de versiones desarrollado por Linus Torvalds, el cual es utilizado por millones de usuarios en todo el mundo. Empresas como GitHub ofrecen servicios de alojamiento de código basados ​​en Git. Según los informes, GitHub, un sitio de alojamiento de código, es el servicio de alojamiento de código más grande del mundo. La compañía afirma que hay 9.2 M de personas colaborando ahora en repositorios de 21.8 M en GitHub.
+
+Monte su propio servidor Git
+
+GitHub es un gran servicio, sin embargo, hay algunas limitaciones y restricciones, especialmente si usted es un desarrollador individual o pequeño. Una de las limitaciones de GitHub es que el servicio gratuito no permite el alojamiento privado del código. Tienes que pagar una tarifa mensual de $ 7 para alojar 5 repositorios privados, y los gastos aumentan con más repositorios. Ahora bajo la nueva administración de Microsoft, muchos usuarios han empezado a buscar alternativas diferentes a GitHub.
+
+En casos como estos o cuando desee más control, la mejor opción es ejecutar Git en su propio servidor. No solamente ahorra costos, también tiene más control sobre su servidor. En la mayoría de los casos, algunos de los usuarios avanzados de Linux ya tienen sus propios servidores y montar Git en esos servidores es incrementar sustancialmente la funcionalidad del servidor.
+
+En el presente tutorial vamos a hablar sobre dos métodos para administrar su código en su propio servidor. Uno está ejecutando un servidor Git básico y simple, y el segundo es a través de una herramienta de GUI llamada GitLab. Para este tutorial se utilizá un servidor LTS Ubuntu 14.04 completamente parcheado que se ejecuta en un VPS.
+
+Instala Git en tu servidor
+
+En este tutorial se considera un caso de uso en el que tenemos un servidor remoto y un servidor local y trabajaremos entre estas máquinas. En aras de la simplicidad los llamaremos servidor remoto y servidor local.
+
+Primero, instale Git en ambas máquinas. Puede instalar Git desde los paquetes ya disponibles a través de repositorios o sus distribuciones, o puede hacerlo manualmente. En este artículo usaremos el método más simple:
+
+sudo apt-get install git-core
+
+Luego agrega un usuario para Git.
+
+sudo useradd git
+passwd git
+
+Para facilitar el acceso al servidor, configuremos un inicio de sesión ssh sin contraseña. Primero crea las claves ssh en tu máquina local:
+
+ssh-keygen -t rsa
+
+Le pedirá que proporcione la ubicación para almacenar la clave, simplemente presione Enter para usar la ubicación predeterminada. La segunda pregunta será proporcionarle una frase de contraseña que será necesaria para acceder al servidor remoto. Genera dos claves: una pública y una privada. Anote la ubicación de la clave pública que necesitará en el siguiente paso.
+
+Ahora debe copiar estas claves en el servidor para que las dos máquinas puedan comunicarse entre sí. Ejecute el siguiente comando en su máquina local:
+
+cat ~/.ssh/id_rsa.pub | ssh git@remote-server "mkdir -p ~/.ssh && cat >>  ~/.ssh/authorized_keys"
+
+Ahora ssh en el servidor y crea un directorio de proyecto para Git. Puede usar la ruta deseada para el repositorio.
+
+git@server:~ $ mkdir -p /home/swapnil/project-1.git
+
+Luego cambie a este directorio:
+
+cd /home/swapnil/project-1.git
+
+Luego crea un repositorio vacío:
+
+git init --bare
+Initialized empty Git repository in /home/swapnil/project-1.git
+
+Ahora necesitamos crear un repositorio de Git en la máquina local.
+
+mkdir -p /home/swapnil/git/project
+
+Y cambia a este directorio:
+
+cd /home/swapnil/git/project
+
+Ahora crea los archivos que necesitas para el proyecto en este directorio. Permanezca en este directorio e inicie git:
+
+git init
+Initialized empty Git repository in /home/swapnil/git/project
+
+Ahora agregue archivos al repositorio:
+
+git add .
+
+Ahora, cada vez que agrega un archivo o realiza cambios, debe ejecutar el comando agregar anterior. También necesita escribir un mensaje de confirmación con cada cambio en un archivo. El mensaje de confirmación básicamente dice qué cambios se realizaron.
+
+git commit -m "message" -a
+[master (root-commit) 57331ee] message
+
+ 2 files changed, 2 insertions(+)
+ create mode 100644 GoT.txt
+ create mode 100644 writing.txt
+
+En este caso, tenía un archivo llamado GoT (Revisión de Game of Thrones) y se hicieron algunos cambios, así que cuando se ejecute el comando especificó que se hicieron cambios en el archivo. En el comando anterior, la opción '-a' significa confirmaciones para todos los archivos en el repositorio. Si realizó cambios en solo uno, puede especificar el nombre de ese archivo en lugar de usar '-a'.
+
+Un ejemplo:
+
+git commit -m "message" GoT.txt
+
+[master e517b10] message
+ 1 file changed, 1 insertion(+)
+
+Hasta ahora hemos estado trabajando en el servidor local. Ahora tenemos que enviar estos cambios al servidor para que el trabajo sea accesible a través de Internet y pueda colaborar con otros miembros del equipo.
+
+git remote add origin ssh://git@remote-server/repo-<wbr< a="">>path-on-server..git
+
+Ahora puede empujar o tirar de los cambios entre el servidor y la máquina local usando la opción 'push' o 'pull':
+
+git push origin master
+
+Si hay otros miembros del equipo que desean trabajar con el proyecto, deben clonar el repositorio del servidor en su máquina local:
+
+git clone git@remote-server:/home/swapnil/project.git
+
+Esta, /home/swapnil/project.git es la ruta del proyecto en el servidor remoto, intercambia los valores para tu propio servidor.
+
+Luego cambie el directorio en la máquina local (intercambie el proyecto con el nombre del proyecto en su servidor):
+
+cd /project
+
+Ahora pueden editar archivos, escribir mensajes de cambio de compromiso y luego enviarlos al servidor:
+
+git commit -m 'corrections in GoT.txt story' -a
+
+Y enviamos los cambios:
+ 
+
+git push origin master
+
+Supongo que esto es suficiente para que un nuevo usuario comience con Git en sus propios servidores. Si está buscando algunas herramientas GUI para administrar cambios en máquinas locales, puede usar herramientas GUI como QGit o GitK para Linux.
+
+Git
+
+Usando GitLab
+
+Esta era una solución de línea de comando pura para el propietario del proyecto y el colaborador. Ciertamente no es tan fácil como usar GitHub. Desafortunadamente, mientras GitHub es el servicio de alojamiento de código más grande del mundo; su propio software no está disponible para que otros lo usen. No es de código abierto, por lo que no puede tomar el código fuente y compilar su propio GitHub. A diferencia de WordPress o Drupal, no puedes descargar GitHub y ejecutarlo en tus propios servidores.
+
+Como es habitual en el mundo del código abierto, las opciones no tienen fin. GitLab es un proyecto ingenioso que hace exactamente eso. Es un proyecto de código abierto que permite a los usuarios ejecutar un sistema de gestión de proyectos similar a GitHub en sus propios servidores.
+
+Puede usar GitLab para ejecutar un servicio similar a GitHub para los miembros de su equipo o su empresa. Puede usar GitLab para trabajar en proyectos privados antes de liberarlos para contribuciones públicas.
+
+GitLab emplea el modelo de negocio tradicional de código abierto. Tienen dos productos: software libre de código abierto, que los usuarios pueden instalar en sus propios servidores, y un servicio alojado similar a GitHub.
+
+La versión descargable tiene dos ediciones: la edición comunitaria gratuita y la edición empresarial paga. La edición empresarial se basa en la edición de comunidad pero viene con características adicionales dirigidas a clientes empresariales. Es más o menos similar a lo que ofrecen WordPress.org o Wordpress.com.
+
+La edición de comunidad es altamente escalable y puede admitir 25,000 usuarios en un solo servidor o clúster. Algunas de las características de GitLab incluyen: administración de repositorios Git, revisiones de códigos, seguimiento de problemas, fuentes de actividad y wikis. Viene con GitLab CI para una integración y entrega continuas.
+
+Muchos proveedores de VPS como Digital Ocean ofrecen gotitas de GitLab para los usuarios. Si desea ejecutarlo en su propio servidor, puede instalarlo manualmente. GitLab ofrece un paquete Omnibus para diferentes sistemas operativos. Antes de instalar GitLab, es posible que desee configurar un servidor de correo electrónico SMTP para que GitLab pueda enviar correos electrónicos cuando sea necesario. Ellos recomiendan Postfix. Por lo tanto, instale Postfix en su servidor:
+
+sudo apt-get install postfix
+
+Durante la instalación de Postfix, le hará algunas preguntas; no te los saltes Si te lo perdiste, siempre puedes volver a configurarlo usando este comando:
+
+sudo dpkg-reconfigure postfix
+
+Cuando ejecuta este comando, seleccione "Sitio de Internet" y proporcione el ID de correo electrónico para el dominio que utilizará Gitlab.
+
+Use la pestaña y cree un nombre de usuario para postfix. La página siguiente le pedirá que proporcione un destino para el correo.
+
+En el resto de los pasos, use las opciones predeterminadas. Una vez que Postfix está instalado y configurado, sigamos para instalar GitLab.
+
+Descargue los paquetes usando wget.
+
+wget https://downloads-packages.s3.amazonaws.com/ubuntu-14.04/gitlab_7.9.4-omnibus.1-1_amd64.deb
+
+Luego instala el paquete:
+
+sudo dpkg -i gitlab_7.9.4-omnibus.1-1_amd64.deb
+
+Ahora es el momento de configurar e iniciar GitLabs.
+
+sudo gitlab-ctl reconfigure
+
+Ahora necesita configurar el nombre de dominio en el archivo de configuración para que pueda acceder a GitLab. Abre el archivo.
+
+nano /etc/gitlab/gitlab.rb
+
+En este archivo edite el 'external_url' y proporcione el dominio del servidor. Guarde el archivo y luego abra el sitio recientemente creado de GitLab desde un navegador web.
+
+Git
+
+Por defecto, crea 'root' como administrador del sistema y usa '5iveL! Fe' como la contraseña. Inicie sesión en el sitio de GitLab y luego cambie la contraseña.
+
+Git
+
+Una vez que se cambia la contraseña, inicie sesión en el sitio y comience a administrar su proyecto.
+
+Git
+
+GitLab está repleto de características y opciones. Tomaré prestadas líneas populares de la película, The Matrix: "Desafortunadamente, a nadie se le puede decir lo que todo GitLab puede hacer. Tienes que intentarlo por ti mismo".
+
+Fuente: https://www.linux.com/learn/how-run-your-own-git-server
+
+Si te ha gustado el artículo, síguenos en Facebook, Twitter, unete a nuestra charla en Riot, únete a IRC o únete a Telegram y no olvides compartirnos en las redes sociales. También puede hacernos una donación o comprar nuestros servicios.
+
+ 
+
+ 
+Etiquetas
+gitlab
+Acerca del autor
+fredyavila2
+
+Fredy Yesid Avila - Ingeniero de Sistemas, CEH - ECSA.
+
+@fredyavila
+
+    Inicie sesión para enviar comentarios
+
+Search
+Search
+Tools
+
+    Contenido reciente
+    Foro
+    YouTube SecHackLabs
+
+Funciona con Drupal

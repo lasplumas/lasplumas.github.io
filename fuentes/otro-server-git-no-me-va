@@ -1,0 +1,478 @@
+
+
+    Instalación y primeros pasos para montar un servidor git privado sobre ubuntu 14.04
+
+Instalación y primeros pasos para montar un servidor git privado sobre ubuntu 14.04
+
+    19-May-2015
+    Jose Carlos Sánchez
+    Wiki , Servidores , Linux
+
+    1. Actualizamos el servidor e instalamos git y ssh. 
+    2. Configuramos git.
+    3. Creamos un proyecto vacío en el server.
+    4. Actualizamos el código del servidor desde nuestro cliente.
+    5. Usando los comandos básicos: clone, pull y push.
+    6. Crear nuevos usuarios para git.
+
+Vamos a montar un servidor git privado en nuestro servidor de desarrollo que estará en la IP 192.168.1.100 (cambiar IP por la pública en caso de ser necesario) al que nos vamos a conectar vía ssh, podemos crear cualquier tipo de proyecto en cualquier lenguaje además de usar cualquier carpeta del sistema y usuario pero nosotros vamos a crear un directorio donde meter nuestros repositorios /git/ y un usuario con una shell capada que le daremos el nombre de gitusr.
+1. Actualizamos el servidor e instalamos git y ssh. 
+
+# apt-get update && apt-get -y dist-upgrade
+
+# apt-get install git ssh
+2. Configuramos git.
+
+$ git config --global core.sharedRepository group
+
+$ git config --global user.name "Usuario Git"
+
+$ git config --global user.email git@ejemplo.es
+3. Creamos un proyecto vacío en el server.
+
+Vamos a crear un proyecto vacío en la parte del servidor para luego desde un cliente actualizar el código. Para ello usamos una terminal en el servidor:
+
+# cd /git
+
+# mkdir proyecto-ejemplo.git 
+
+# chown -R gitusr:gitusr proyecto-ejemplo.git
+
+# chmod -R 770 proyecto-ejemplo.git
+
+# cd proyecto-ejemplo.git 
+
+$ sudo -u gitusr git --bare init --shared=group
+
+Y ya tenemos el proyecto vacío en el server listo para recibir datos.
+4. Actualizamos el código del servidor desde nuestro cliente.
+
+Ahora vamos a nuestro ordenador, a nuestro proyecto existente, pongamos que la ruta es /var/www/ejemplo 
+
+# cd /var/www/ejemplo
+
+Si aún no hemos inicializado el proyecto en git, hacemos:
+
+$ git init
+
+$ git add .
+
+$ git commit -m "Inicio proyecto git"
+
+Ahora linkamos nuestro proyecto local a nuestro proyecto vacío del server:
+
+$ git remote add origin ssh://gitusr@192.168.1.100/git/proyecto-ejemplo.git
+
+Y ya podemos hacer un push y sincronizar nuestro código local con el del servidor:
+
+ $ git push origin master
+5. Usando los comandos básicos: clone, pull y push.
+
+Vamos a ver un ejemplo de cómo usaríamos ahora los comandos más típicos de git con la configuración de nuestro proyecto.
+
+$ git clone gitusr@192.168.1.100:/git/proyecto-ejemplo.git
+
+$ git push origin master
+
+$ git pull origin master
+6. Crear nuevos usuarios para git.
+
+Vamos a crear nuevos usuarios que puedan usar nuestro servidor git. Para ello crearemos los usuarios sin directorio home y que sólo puedan usar la consola de git, depués los agregaremos al mismo grupo que el usuario principal de git y les daremos una contraseña.
+
+# useradd -r --shell /usr/bin/git-shell NUEVO_USUARIO
+
+# adduser NUEVO_USUARIO gitusr
+
+# passwd NUEVO_USUARIO
+
+Debemos recordar dar permisos 770 a la carpeta de git para que los nuevos usuarios puedan escribir en ella. 
+git
+
+///////////////////////////////
+
+
+
+Crear y usar un repositorio git en un servidor
+Índice
+
+Volver a davidam.com
+1 En el servidor
+
+cd ~
+mkdir repository.git
+cd repository.git
+git --bare init
+git config core.sharedRepository true
+
+Si aptece crear el repositorio a través de github, o gitlab vía interfaz web puedes obviar este paso.
+2 En local (mi primera vez)
+
+mkdir repository
+cd repository
+git init
+git add *
+git commit -m "Initial import"
+git remote add origin git+ssh://user@server/home/user/git/repository.git
+git push origin master
+
+3 En local (las siguientes veces)
+
+cd repository
+git add *
+git commit -m "Initial import"
+git push
+
+4 Bajar git:
+
+Si tienes tu propio servidor …
+
+git clone git+ssh://user@server/home/user/git/repository.git
+
+Si por ejemplo usas github …
+
+git clone https://github.com/davidam/damenumpy.git
+
+5 Permitiendo http
+
+Una vez realizados los pasos anteriores se puede habilitar usar git con http en tu servidor y cliente. Este paso obviamente no es necesario si usas github, gitlab, savannah, …
+5.1 En el servidor
+
+$ cd /var/www/
+$ git clone --bare /home/user/git/repository repository.git
+$ cd drupal-el.git
+$ mv hooks/post-update.sample hooks/post-update
+$ chmod a+x hooks/post-update
+$ git update-server-info
+
+5.2 En el cliente
+
+$ git clone http://server/repository.git
+
+6 Estudiando cosas que pasan en tu propio repositorio
+
+$ git pull .
+$ git status .
+$ git log fichero
+$ git diff 84de2396c3f0fcdc9994028b5bf5f0005c763496 3c933adaf627bc8a58cfefb62ff0f2d5df640673 fichero
+
+7 Eliminar ficheros
+
+$ git rm file
+$ git commit -m "delete file" file
+$ git push
+
+8 Mover/renombrar ficheros
+
+$ git mv fileold folder
+$ git commit -m "folder: moving fileold" fileold filenew
+$ git push
+
+9 Un par de apuntes rápidos para deshacer cambios
+
+Revertir ficheros no commiteados
+
+$ git checkout -- file
+
+Deshacer el último commit no enviado con push:
+
+$ git reset --hard HEAD~1
+
+Revertir el último cambiado, al que se le ha hecho push
+
+$ git push -f origin last_commit:branch
+
+10 Ramas
+10.1 Crear ramas
+
+Los pasos son:
+
+    Crear la rama
+    Usar la rama
+    Enviar los cambios al servidor
+
+$ git checkout -b [name_of_your_new_branch]
+$ git checkout [name_of_your_new_branch]
+$ git push origin [name_of_your_new_branch]
+
+10.2 Cambiando de ramas
+
+Es posible que tengamos varias ramas por ejemplo production (prod) y development (dev). Si estamos en master y queremos pasar los cambios a production se puede hacer lo siguiente:
+
+$ git branch origin/prod       # en caso de no tenerla se crea la rama origin/prod
+$ git branch -a                # comprobar que realmente estamos en master
+$ git branch --track prod origin/prod  # si no lo tenemos ya asocia prod a origin/prod
+$ git checkout prod            # cambiamos a la rama prod
+$ git merge dev                # se merguean los cambios desde dev a prod
+$ git push                     # se suben los cambios
+
+10.3 Borrar ramas
+
+Para borrar una rama son necesarios dos pasos:
+
+    Borrar la rama en el sistema de ficheros
+    Publicar el cambio en el servidor
+
+$ git branch -d [name_of_your_new_branch]
+$ git branch -D [name_of_your_new_branch] # Si necesitas forzar el borrado (no recomendado)
+$ git push origin :[name_of_your_new_branch]
+
+10.4 Clonar ramas
+
+$ git clone -b [name_of_your_branch] [name_of_your_repository]
+
+10.5 Listar ramas
+
+$ git branch -a # list branches in local repository
+$ git branch -r # list branches in remote repository
+
+11 Git Submodules: Añadir, Usar, Eliminar y Actualizar
+11.1 Añadir
+
+$ git submodule add git@mygithost:billboard lib/billboard
+
+Ver lo que has hecho
+
+$ git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   .gitmodules
+#       new file:   lib/billboard
+#
+$ cat .gitmodules
+[submodule "lib/billboard"]
+path = lib/billboard
+url = git@mygithost:billboard
+
+11.2 Usando submódulos
+
+$ git submodule init
+Submodule 'lib/billboard' (git@mygithost:billboard) registered for path 'lib/billboard'
+$ git submodule update
+Initialized empty Git repository in ~/git_dev/SampleTheme/lib/billboard/.git/
+remote: Counting objects: 26, done.
+remote: Compressing objects: 100% (22/22), done.
+remote: Total 26 (delta 5), reused 0 (delta 0)
+Receiving objects: 100% (26/26), 17.37 KiB, done.
+Resolving deltas: 100% (5/5), done.
+Submodule path 'lib/billboard': checked out '1c407cb2315z0847facb57d79d680f88ca004332'
+
+11.3 Eliminando submódulos
+
+$ git submodule rm lib/billboard
+
+11.4 Actualizando submódulos
+
+$ git submodule init
+$ git submodule update
+$ git pull
+
+12 Una gui
+
+A quien no le guste el emacs es un animal, pero puede usar algo como lo siguiente:
+
+$ sudo apt-get install git-cola
+
+Y a quien le guste le pueden servir estos atajos, por ejemplo:
+
+C-x v v (siguiente acción. Ej: add, commit)
+C-x v = (diff)
+C-x v d (status)
+
+
+
+//////////////////////////
+
+
+
+
+Crear y usar un repositorio git en un servidor
+Índice
+
+Volver a davidam.com
+1 En el servidor
+
+cd ~
+mkdir repository.git
+cd repository.git
+git --bare init
+git config core.sharedRepository true
+
+Si aptece crear el repositorio a través de github, o gitlab vía interfaz web puedes obviar este paso.
+2 En local (mi primera vez)
+
+mkdir repository
+cd repository
+git init
+git add *
+git commit -m "Initial import"
+git remote add origin git+ssh://user@server/home/user/git/repository.git
+git push origin master
+
+3 En local (las siguientes veces)
+
+cd repository
+git add *
+git commit -m "Initial import"
+git push
+
+4 Bajar git:
+
+Si tienes tu propio servidor …
+
+git clone git+ssh://user@server/home/user/git/repository.git
+
+Si por ejemplo usas github …
+
+git clone https://github.com/davidam/damenumpy.git
+
+5 Permitiendo http
+
+Una vez realizados los pasos anteriores se puede habilitar usar git con http en tu servidor y cliente. Este paso obviamente no es necesario si usas github, gitlab, savannah, …
+5.1 En el servidor
+
+$ cd /var/www/
+$ git clone --bare /home/user/git/repository repository.git
+$ cd drupal-el.git
+$ mv hooks/post-update.sample hooks/post-update
+$ chmod a+x hooks/post-update
+$ git update-server-info
+
+5.2 En el cliente
+
+$ git clone http://server/repository.git
+
+6 Estudiando cosas que pasan en tu propio repositorio
+
+$ git pull .
+$ git status .
+$ git log fichero
+$ git diff 84de2396c3f0fcdc9994028b5bf5f0005c763496 3c933adaf627bc8a58cfefb62ff0f2d5df640673 fichero
+
+7 Eliminar ficheros
+
+$ git rm file
+$ git commit -m "delete file" file
+$ git push
+
+8 Mover/renombrar ficheros
+
+$ git mv fileold folder
+$ git commit -m "folder: moving fileold" fileold filenew
+$ git push
+
+9 Un par de apuntes rápidos para deshacer cambios
+
+Revertir ficheros no commiteados
+
+$ git checkout -- file
+
+Deshacer el último commit no enviado con push:
+
+$ git reset --hard HEAD~1
+
+Revertir el último cambiado, al que se le ha hecho push
+
+$ git push -f origin last_commit:branch
+
+10 Ramas
+10.1 Crear ramas
+
+Los pasos son:
+
+    Crear la rama
+    Usar la rama
+    Enviar los cambios al servidor
+
+$ git checkout -b [name_of_your_new_branch]
+$ git checkout [name_of_your_new_branch]
+$ git push origin [name_of_your_new_branch]
+
+10.2 Cambiando de ramas
+
+Es posible que tengamos varias ramas por ejemplo production (prod) y development (dev). Si estamos en master y queremos pasar los cambios a production se puede hacer lo siguiente:
+
+$ git branch origin/prod       # en caso de no tenerla se crea la rama origin/prod
+$ git branch -a                # comprobar que realmente estamos en master
+$ git branch --track prod origin/prod  # si no lo tenemos ya asocia prod a origin/prod
+$ git checkout prod            # cambiamos a la rama prod
+$ git merge dev                # se merguean los cambios desde dev a prod
+$ git push                     # se suben los cambios
+
+10.3 Borrar ramas
+
+Para borrar una rama son necesarios dos pasos:
+
+    Borrar la rama en el sistema de ficheros
+    Publicar el cambio en el servidor
+
+$ git branch -d [name_of_your_new_branch]
+$ git branch -D [name_of_your_new_branch] # Si necesitas forzar el borrado (no recomendado)
+$ git push origin :[name_of_your_new_branch]
+
+10.4 Clonar ramas
+
+$ git clone -b [name_of_your_branch] [name_of_your_repository]
+
+10.5 Listar ramas
+
+$ git branch -a # list branches in local repository
+$ git branch -r # list branches in remote repository
+
+11 Git Submodules: Añadir, Usar, Eliminar y Actualizar
+11.1 Añadir
+
+$ git submodule add git@mygithost:billboard lib/billboard
+
+Ver lo que has hecho
+
+$ git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   .gitmodules
+#       new file:   lib/billboard
+#
+$ cat .gitmodules
+[submodule "lib/billboard"]
+path = lib/billboard
+url = git@mygithost:billboard
+
+11.2 Usando submódulos
+
+$ git submodule init
+Submodule 'lib/billboard' (git@mygithost:billboard) registered for path 'lib/billboard'
+$ git submodule update
+Initialized empty Git repository in ~/git_dev/SampleTheme/lib/billboard/.git/
+remote: Counting objects: 26, done.
+remote: Compressing objects: 100% (22/22), done.
+remote: Total 26 (delta 5), reused 0 (delta 0)
+Receiving objects: 100% (26/26), 17.37 KiB, done.
+Resolving deltas: 100% (5/5), done.
+Submodule path 'lib/billboard': checked out '1c407cb2315z0847facb57d79d680f88ca004332'
+
+11.3 Eliminando submódulos
+
+$ git submodule rm lib/billboard
+
+11.4 Actualizando submódulos
+
+$ git submodule init
+$ git submodule update
+$ git pull
+
+12 Una gui
+
+A quien no le guste el emacs es un animal, pero puede usar algo como lo siguiente:
+
+$ sudo apt-get install git-cola
+
+Y a quien le guste le pueden servir estos atajos, por ejemplo:
+
+C-x v v (siguiente acción. Ej: add, commit)
+C-x v = (diff)
+C-x v d (status)
+
+

@@ -1,0 +1,328 @@
+Bitacora Linux Logo
+Newsletter
+Contactar
+Apache
+Consola y Servidores
+Javascript y HTML5
+PHP
+Otros
+Buscar en la web...
+Configura tu IP en debian 9
+En esta entrada vamos a ver como se configura tu IP en debian 9.
+
+Este comando que han introducido en esta versión, sera el que en un futuro sera sustituya a ifconfig. Así que vamos a ver las diferentes opciones y equivalencias con ifconfig
+
+Indice de Contenidos	
+Ver la configuracion
+Activar interfaz de red
+Desactivar la interfaz de red
+Configura tu IP
+Cambiar MTU
+Estadisticas de paquetes
+Ver la tabla de rutas
+Ver la direccion mac
+Ver la configuracion
+ip a s ens3
+ip addr show ens3
+Estas dos lineas hacen lo mismo, nos muestra la configuración de la interfaz de red indicada, que es la ens3.
+
+Activar interfaz de red
+ip link set ens3 up
+Desactivar la interfaz de red
+ip link set ens3 down
+Configura tu IP
+ip addr add 192.168.0.254/255.255.255.0 dev ens3
+Le estamos configurando la interfaz de red ens3. Indicandole que tendrá la direccion ip v4 192.168.0.254, con una mascara de red 255.255.255.0.
+
+Cambiar MTU
+El MTU, Maximum Transfer Unit, es el tamaño máximo de los paquetes en bytes, que enviamos a través de la interfaz de red.
+
+Teniendo en cuenta que la información que enviamos, va troceada en paquetes y que van pasando por diferentes nodos hasta llegar al destino.
+
+Se recomienda que tenga un MTU de 1500, ya que no todos los nodos son capaces de manejar paquetes mas grandes y esto tendría que volver a trocear el paquete, produciendo una ralentización en la conexión.
+
+ip addr list ens3
+ ens3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+En la interfaz ens3, tengo un MTU de 1500, si quisiera cambiarlo seria
+
+ip link set mtu 2000 dev ens3
+Estadisticas de paquetes
+ip -s link
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    RX: bytes  packets  errors  dropped overrun mcast   
+    4469845326 2004778  0       0       0       0       
+    TX: bytes  packets  errors  dropped carrier collsns 
+    4469845326 2004778  0       0       0       0       
+2: ens3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+    link/ether ba:16:3e:1a:d8:d7 brd ff:ff:ff:ff:ff:ff
+    RX: bytes  packets  errors  dropped overrun mcast   
+    12312019729 127529371 0       0       0       0       
+    TX: bytes  packets  errors  dropped carrier collsns 
+    127640931568 146494316 0       0       0       0  
+Aqui podemos ver las estadísticas, paquetes transmitidos (Tx), recibidos (Rx) y bytes transmitidos y recibidos.
+
+Si nos fijamos en el apartado de la interfaz en3, que es la interfaz de red, en la fila de los paquetes Rx, en la columna que pone bytes, salen 12312019729 bytes, que son 11.46 Gigas y en la segunda fila de los paquetes Tx pone 127640931568 bytes, que son 118.87 Gigas Transmitidos.
+
+Ver la tabla de rutas
+ip route
+default via 111.2.12.1 dev ens3 
+111.2.12.1 dev ens3 scope link 
+Ver la direccion mac
+ip neighbour
+111.2.12.1 dev ens3 lladdr b2:d0:4e:87:31:fe REACHABLE
+Aunque seguimos teniendo ifconfig, como vemos se configura la ip en debian 9, a través del propio comando ip, al cual nos debemos de ir acostumbrando, ya que ifconfig mas o tarde o temprano desaparecerá.
+
+Comparte esta entrada:
+TWITTER
+FACEBOOK
+EMAIL
+WHATSAPP
+///////////////////////////
+
+Bitacora Linux Logo
+Newsletter
+Contactar
+Apache
+Consola y Servidores
+Javascript y HTML5
+PHP
+Otros
+Buscar en la web...
+Configurar una ip con alias
+Muy buenas, en esta entrada veremos como podemos configurar una ip con alias. El IP Aliasing, es como se llama a este metodo para que podamos tener distintas ip en nuestra interfaz de red.
+
+Utilizando los alias ip podemos tener diferentes sitios webs, cada uno con una dirección ip diferente en nuestro servidor, configurándolo a través de su virtualhost en nuestro servidor apache.
+
+Para la configuración de los virtualhost te aconsejo que te leas la siguiente entrada, donde lo trato con mas detalle. Configuracion en Apache2 de los Hosting Virtuales.
+
+Primero de todo hacemos un ifconfig y vemos cual es nuestra interfaz de red y su configuración.
+
+ens3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 149.80.13.14  netmask 255.255.255.255  broadcast 149.80.13.14
+        inet6 de80::e816:3eef:ff1a:f8d7  prefixlen 64  scopeid 0x20<link>
+        ether fa:16:3e:1a:f8:d7  txqueuelen 1000  (Ethernet)
+        RX packets 127877096  bytes 12351655022 (11.5 GiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 146870428  bytes 127898183164 (119.1 GiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+En este caso nuestra interfaz es ens3
+
+En el siguietne paso nos tenemos que dirigirnos al directorio /etc/network/interfaces.d
+
+cd /etc/network/interfaces.d
+Procedemos a editar el fichero 50-cloud-init.cfg con nuestro editor favorito. Actualmente uso mcedit.
+
+mcedit 50-cloud-init.cfg
+Las primeras lineas, deben de ser parecidas a esta.
+
+auto lo
+iface lo inet loopback
+auto ens3
+iface ens3 inet dhcp
+Si os fijais en el fichero, lo primero que tenemos es la configuracion de la interfaz localhost que lleva la ip loopback, que es la 127.0.0.1. Despues tenemos la intefaz ens3, la cual recoge la ip mediante DHCP.
+
+Ahora es cuando vamos configurar un ip con alias, para ello añadimos el siguiente bloque por cada alias ip.
+
+auto ens3:0 
+allow-hotplug ens3:0 
+iface ens3:0 inet static
+address 140.73.17.8
+netmask 255.255.255.255
+En este caso estamos configurando el primer alias ip, que es el 0 y en address indicamos la dirección ip que le queremos asignar al primer alias.
+
+Si quisiéramos añadir alguno mas solamente tendríamos que seguir la enumeración, pero siempre con el prefijo de la interfaz de red original en este caso la ens3.
+
+Una ver terminada la configuración, vamos a reiniciar las interfaces de red, para que el sistema coja la nueva configuracion.
+
+/etc/init.d/networking restart
+Ahora si hacemos un ifconfig, deberíamos de tener algo parecido a esto.
+
+ens3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 149.80.13.14  netmask 255.255.255.255  broadcast 149.80.13.14
+        inet6 de80::e816:3eef:ff1a:f8d7  prefixlen 64  scopeid 0x20<link>
+        ether fa:16:3e:1a:f8:d7  txqueuelen 1000  (Ethernet)
+        RX packets 127877096  bytes 12351655022 (11.5 GiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 146870428  bytes 127898183164 (119.1 GiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+ens3:0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 140.73.17.8  netmask 255.255.255.255  broadcast 217.182.235.43
+        ether fa:16:3e:1a:f8:d7  txqueuelen 1000  (Ethernet)
+También te puede interesar
+Como configurar tu ip en debian 9
+Configuracion en Apache2 de los Hosting Virtuales/
+Comparte esta entrada:
+TWITTER
+FACEBOOK
+EMAIL
+WHATSAPP
+///////////////////////////////////////////
+
+
+Bitacora Linux Logo
+Newsletter
+Contactar
+Apache
+Consola y Servidores
+Javascript y HTML5
+PHP
+Otros
+Buscar en la web...
+Configuracion Apache2 – Hosting Virtuales
+Vamos a continuar configurando nuestro Apache, ahora vamos con los Hosting Virtuales.
+
+Dentro del directorio de configuracion de apache2, encontramos diferentes archivos y subdirectorios.
+
+El archivo ports.conf, es en el que se especifica los puertos por donde escuchara el apache2. Tiene un contenido asi:
+
+NameVirtualHost *:80
+Listen 80
+
+Todos los virtualhost escuchara en el puerto 80 y por defecto escucha tambien en el puerto 80.
+
+Sites-enabled y sites-available. El ultimo directorio son los sitios disponibles, pero que no están
+funcionando, para que funcione debo hacerle un enlace simbolico en sites-enable.
+
+Para hacer estos enlaces simbolicos usaremos a2ensite y a2dissite:
+
+#a2ensite nombrearchivohostvirtual
+
+#a2dissite nombrearchivohostvirtual
+
+
+Lo mismo ocurrirá con los directorios mods-enable y mods-available. Para los mods tambien tenemos a2enmod y a2dismod
+
+#a2enmod nombredelmod
+
+#a2dismod nombredelmod
+
+La configuracion de los distintos host virtuales se hace cada uno en su fichero correspondiente. Quedando asi:
+
+NameVirtualHost 192.168.0.225:80
+
+Le estamos indicando que para los host virtuales los escuchara por la direccion ip indicada. Si tuvieramos mas de un HostVirtual escuchando por esta direccion ip, esta linea solo la tendriamos que definir en un fichero.
+
+<VirtualHost 192.168.0.225:80>
+
+Contiene las directivas que se aplican solo a un nombre de host específico o dirección IP
+
+DocumentRoot /var/www/ejemplo
+
+Le estamos indicando el directorio raiz para este host virtual.
+
+ServerName www.ejemplo.com:80
+
+Especifica el nombre de host y el puerto que usa el servidor para identificarse. Esto se usa cuando se hace redirección de URLs. Por ejemplo, si el nombre de la maquina del servidor web es "web.ejemplo.com", pero el la maquina también tiene el alias DNS www.ejemplo.com y quiere que el servidor web se identifique así.
+
+ServerAlias web.ejemplo.es:80
+
+Nombres alternativos usados para un host cuando se intentan encontrar equivalencias a hosts virtuales basados en el nombre. Por ejemplo si ponemos «*.ejemplo.com», todos los subdominios de ejemplo.com iran www.ejemplo.com
+
+ServerAdmin juanjocm@gmail.com
+
+Dirección de email que el servidor incluye en los mensajes de error que se envían al cliente
+
+LogLevel warn
+
+Controla el tipo de los mensajes que se almacenan en el ErrorLog. A continuacion voy a explicar los distintos tipos. Ira seguido del tipo de LogLevel, una descripcion y un ejemplo:
+
+emerg
+Emergencias – sistema inutilizable.
+«Un proceso hijo no puede abrir el fichero de lock (lockfile). El programa va a terminar»
+
+alert
+Debe hacer algo inmediatamente.
+«getpwuid: no pudo determinar el nombre de usuario a partir del uid»
+
+crit
+Condiciones críticas.
+«socket: No se encontró un socket adecuado, el proceso hijo va a terminar»
+
+error
+Condiciones de error.
+«Final prematuro de la cabecera del script»
+
+warn
+Condiciones de advertencia.
+«el proceso hijo 1234 no ha terminado, enviando otra vez SIGHUP»
+
+notice
+Condición normal, pero significativa.
+«httpsd: interceptada señal SIGBUS, intentando hacer un volcado de memoria en …»
+
+info
+Información.
+«El servidor parece estar ocupado, (puede que necesite incrementar StartServers, o Min/MaxSpareServers)…»
+
+debug
+Mensajes de nivel debug
+«Abriendo el fichero de configuración …»
+
+Continuamos con nuestro VirtualHost
+
+CustomLog /var/log/apache2/blog.access.log
+
+Logs de acceso al servidor.
+
+ErrorLog /var/log/apache2/blog.error.log
+
+Ubicación del fichero en el que se almacenan los mensajes de error
+
+Ahora vamos a pasar a darle unos permisos especiales a nuestros directorio raiz de nuestro blog.
+Para ellos vamos a usar la directiva <Directory></Directory> que dentro englobaran unas directivas que seran solo para ese directorio.
+
+Directory habria que ponerlo de la siguiente manera, seguido del raiz de nuestro sitio web.
+
+<Directory /var/www/sitioweb/>
+
+DirectoryIndex
+
+Evita el listado de los directorios. Carga los index.php, index.html, index.htm…
+
+Options ExecCGI FollowSymLinks
+
+Permite la ejecucion de scripts CGI y seguira los enlaces simbolicos.
+
+Options admite los siguientes valores. Cada valor puede ir precedido con un + o – para activar o desactivar esa opcion
+
+<strong>All</strong>
+Todas las opciones excepto MultiViews. Este es el valor por defecto.
+<strong>ExecCGI</strong>
+Se permite la ejecución de scripts CGI usando mod_cgi.
+<strong>FollowSymLinks</strong>
+El servidor seguirá los enlaces simbólicos en este directorio
+<strong>Includes</strong>
+Permite el uso de Server-side includes, del módulo mod_include.
+<strong>IncludesNOEXEC</strong>
+Permite el uso de Server-side includes, pero #exec cmd y #exec cgi son desactivados. Aunque es posible #include virtual (incluir de forma virtual) scripts CGI desde directorios especificados con ScriptAlias.
+<strong>Indexes</strong>
+Si se produce una petición a una URL que se corresponde con un directorio, y no hay DirectoryIndex (por ejemplo, index.html) en ese directorio, entonces mod_autoindex devolverá una lista con los contenidos del directorio.
+<strong>MultiViews</strong>
+Se permiten «MultiViews» de contenido_negociado «MultiViews» usando mod_negotation.
+<strong>SymLinksIfOwnerMatch</strong>
+El servidor seguirá los enlaces simbólicos en los que el fichero o directorio final pertenezca al mismo usuario que el enlace.
+AllowOverride all
+
+Activa o desactiva los archivos .htaccess. Por defecto viene a all, mas adelante en otro veremos la configuracion de los .htaccess.
+
+Order allow,deny
+
+Order simplemente controla el orden en que allow y deny se evaluan. El servidor está configurado para evaluar Allow antes que deny para el directorio DocumentRoot.
+
+Allow from all
+Allow from 10.1
+Allow from 10 172.20 192.168.2
+Allow from 10.1.0.0/255.255.0.0
+Allow from 10.1.0.0/16
+Allow from apache.org
+Allow from .net example.edu
+
+Allow especifica qué peticionario puede acceder un directorio dado. El peticionario puede ser all, un nombre de dominio, una dirección IP, una dirección IP parcial, un par red/máscara de red, etc. Se puede poner mas de una linea con Allow from. El directorio DocumentRoot está configurado para permitir peticiones de all (cualquiera).
+
+Deny
+
+Deny funciona como allow, pero especifica a quién se niega el acceso. DocumentRoot no está configurado para rechazar peticiones de nadie. Al estar vacio, no deniega ninguna peticion.
+
+Comparte esta entrada:
