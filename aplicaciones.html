@@ -1,26 +1,53 @@
 <!DOCTYPE html>
 <html lang="es">
 
-<head>
-<meta charset="UTF-8">
-<!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
-<link rel="icon" href="img/favicon.png" sizes="64x64" type="image/png" />
-<meta name="generator" generator="EMACS" content="EMACS">
-<meta name="rights" content="propiedad © cc" />
-<meta name="author" content="julio fernandez gomez">
-<meta name="robots" content="index,follow" />
-<meta http-equiv="Content-Script-Type" content="text/javascript">
-<meta http-equiv="Content-Style-Type" content="text/css">
-<meta name="description" content="las plumas, montblanc,parker,los boligrafos y que sucedera...">
-<meta name="keywords" content="plumas,plumones,tinta,plumas originales,plumas tradicionales,la mejor pluma">
-<meta name="revisit-after" content="1 day">
-<meta name="Language" content="Spanish">
-<meta name="robots" content="index,follow">
-<meta name="googlebot" content="index,follow">
-<meta name="audience" content="all">
-<meta name="reply-to" content="julio.logiters@gmail.com">
+    <head>
+        <meta charset="UTF-8">
+        <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
+        <link rel="icon" href="img/favicon.png" sizes="64x64" type="image/png" />
+        <meta name="generator" generator="EMACS" content="EMACS">
+        <meta name="rights" content="propiedad © cc" />
+        <meta name="author" content="julio fernandez gomez">
+        <meta name="robots" content="index,follow" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript">
+        <meta http-equiv="Content-Style-Type" content="text/css">
+        <meta name="description" content="las plumas, montblanc,parker,los boligrafos y que sucedera...">
+        <meta name="keywords" content="plumas,plumones,tinta,plumas originales,plumas tradicionales,la mejor pluma">
+        <meta name="revisit-after" content="1 day">
+        <meta name="Language" content="Spanish">
+        <meta name="robots" content="index,follow">
+        <meta name="googlebot" content="index,follow">
+        <meta name="audience" content="all">
+        <meta name="reply-to" content="julio.logiters@gmail.com">
+
+
+
+        <!--INICIA TAGS PARA TWITTER, VER: https://dev.twitter.com/cards/types/summary -->
+        <meta content='summary_large_image' name='twitter:card'/>
+        <meta content='@juliofg1' name='twitter:site'/>
+        <meta content='@juliofg1' name='twitter:creator'/>
+        <!-- SI ES EL INDEX (PAGINA PRINCIPAL) -->
+        <b:if cond='data:blog.pageType == "index"'>
+            <meta content='la web de las plumas' property='og:title'/>
+            <meta content='merc' property='og:description'/>
+            <meta content='https://lasplumas.github.io/img/gato.png' property='og:image'/>
+            <meta expr:content='data:blog.homepageUrl' name='og:url'/>
+            <!-- SI NO ES EL INDEX (UN POST, PAGINA, ETC.) -->
+            <b:else/>
+            <meta expr:content='data:blog.url' name='og:url'/>
+            <meta expr:content='data:blog.pageName' name='og:title'/>
+            <meta expr:content='data:blog.postImageUrl' name='og:image'/>
+            <!-- SI EL POST CONTIENE DESCRIPCION (SEARCH DESCRIPTION)  -->
+            <b:if cond='data:blog.metaDescription'>
+                <meta expr:content='data:blog.metaDescription' name='og:description'/>
+                <!-- SI EL POST NO CONTIENE DESCRIPCION (SEARCH DESCRIPTION)  -->
+                <b:else/>
+                <meta content='Lee el artículo completo. Si te gusta, no te olvides de hacer RT, FAV y compartirlo' name='og:description'/>
+            </b:if>
+        </b:if>
+        <!--FIN DE TAGS PARA TWITTER-->
 
 <title>【⌛ LAS PLUMAS Y SU MUNDO ✆ ⛳】 👌 🙌 </title>
 
@@ -31,7 +58,7 @@
 <meta name="twitter:image" content="https://juliofg1.github.io/img/avion.png" />
 <meta name="twitter:url" content="" />
 
-   <!--//BLOQUE COOKIES-->   
+   <!--//BLOQUE COOKIES-->
 <script>
 function getCookie(c_name){
     var c_value = document.cookie;
@@ -51,14 +78,14 @@ function getCookie(c_name){
     }
     return c_value;
 }
- 
+
 function setCookie(c_name,value,exdays){
     var exdate=new Date();
     exdate.setDate(exdate.getDate() + exdays);
     var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
     document.cookie=c_name + "=" + c_value;
 }
- 
+
 if(getCookie('tiendaaviso')!="1"){
     document.getElementById("barraaceptacion").style.display="block";
 }
@@ -79,7 +106,7 @@ function PonerCookie(){
   gtag('config', 'UA-161852601-4');
 </script>
 
-  <link rel="stylesheet" href="css/estilo.css"> 
+  <link rel="stylesheet" href="css/estilo.css">
 </head>
 
 
@@ -116,7 +143,7 @@ function PonerCookie(){
    <h2><i>""las plumas tienen un algo que atrae que no sabria explicar!!""</i></h2>
     <div class="contenedor">
  <article>
-  
+
 </article>
 </div>
 </section>
@@ -124,20 +151,20 @@ function PonerCookie(){
 <!--/////////////////////////////////primera///////////////////////////////////////-->
 <section id="info">
       <div class="contenedor">
-      <div class="info-pet"> 
-        
+      <div class="info-pet">
+
         </div>
 
         <div class="info-pet">
- 
-      </div> 
+
+      </div>
     </div>
   </section>
 <!-/////////////////////////////////////////fin primera/////////////////////////////////////////////////-->
 
 <section id="blog">
    <h2><span></span></h2>
-  
+
    <div class="contenedor">
      <article>
      </article>
@@ -146,18 +173,18 @@ function PonerCookie(){
 </div>
 
  </section>
-       
+
 <!--///////////////////////////////////segunda///////////////////////////////-->
   <section id="info">
     <h6></h6>
     <div class="contenedor">
       <div class="info-pet">
-        
+
       </div>
       <div class="info-pet">
-         
+
       </div>
-      
+
     </div>
   </section>
   <!--//////////////////////////////////fin segunda////////////////////////////////////////////-->
@@ -176,9 +203,9 @@ function PonerCookie(){
 
   <div id="barraaceptacion" style="display: block;">
     <div>
-       <!-- Solicitamos su permiso para obtener datos estadísticos de su navegación en esta web, en cumplimiento del Real 
+       <!-- Solicitamos su permiso para obtener datos estadísticos de su navegación en esta web, en cumplimiento del Real
         Decreto-ley 13/2012. Si continúa navegando consideramos que acepta el uso de cookies.
-        <a   rel="nofollow" href="javascript:void(0);" class="ok" onclick="PonerCookie();"><b>OK</b></a> | 
+        <a   rel="nofollow" href="javascript:void(0);" class="ok" onclick="PonerCookie();"><b>OK</b></a> |
         <a   rel="nofollow" href="http://politicadecookies.com" target="_blank" class="info">Más información</a>
         -->
     </div>
